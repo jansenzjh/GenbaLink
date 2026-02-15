@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using MySqlConnector;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -17,11 +17,9 @@ public class SchemaUpgrader
 
     public void Upgrade()
     {
-        // Fallback to default if not configured, matching Program.cs hardcoded string for now
-        var connectionString = _configuration.GetConnectionString("DefaultConnection") 
-                             ?? "Data Source=genbalink.db";
+        var connectionString = _configuration.GetConnectionString("DefaultConnection");
         
-        using var connection = new SqliteConnection(connectionString);
+        using var connection = new MySqlConnection(connectionString);
         
         try 
         {
@@ -29,7 +27,6 @@ public class SchemaUpgrader
             {
                 EmbeddedResourceAssemblies = new[] { typeof(SchemaUpgrader).Assembly },
                 IsEraseDisabled = true,
-                // The filter should match the embedded resource names prefix
                 EmbeddedResourceFilters = new[] { "GenbaLink.DB.Scripts" }
             };
 

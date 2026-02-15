@@ -11,8 +11,9 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 // Database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<GenbaLinkDbContext>(options =>
-    options.UseSqlite("Data Source=genbalink.db"));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // Services
 builder.Services.AddScoped<IDemandAggregator, DemandAggregator>();
@@ -27,8 +28,12 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    // For containerized environments like Cloud Run, HTTPS is usually handled by the load balancer.
+    // app.UseHttpsRedirection(); 
+}
 
-app.UseHttpsRedirection();
 app.MapControllers();
 
 // Database Seeding

@@ -43,9 +43,22 @@
 		9A4D59202F3D737A00944C36 /* GenbaLinkClientUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GenbaLinkClientUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9A4D5A2B2F3E0A5100944C36 /* Exceptions for "GenbaLinkClient" folder in "GenbaLinkClient" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 9A4D59062F3D737900944C36 /* GenbaLinkClient */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9A4D59092F3D737900944C36 /* GenbaLinkClient */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9A4D5A2B2F3E0A5100944C36 /* Exceptions for "GenbaLinkClient" folder in "GenbaLinkClient" target */,
+			);
 			path = GenbaLinkClient;
 			sourceTree = "<group>";
 		};
@@ -463,6 +476,9 @@
 				DEVELOPMENT_TEAM = BY59H3843H;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GenbaLinkClient/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to the microphone to record your voice for speech recognition.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need speech recognition to convert your voice to text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -499,6 +515,9 @@
 				DEVELOPMENT_TEAM = BY59H3843H;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GenbaLinkClient/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to the microphone to record your voice for speech recognition.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need speech recognition to convert your voice to text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

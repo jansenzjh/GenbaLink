@@ -4,7 +4,7 @@ GenbaLink is a "Genba-First" intelligence system that captures unsatisfied deman
 
 ## Architecture
 
-### Backend (.NET 10 / 8)
+### Backend (.NET 9)
 - **Framework**: ASP.NET Core Web API
 - **Database**: SQLite
 - **Architecture**: Clean Architecture (Api, Core, Infrastructure, Shared)
