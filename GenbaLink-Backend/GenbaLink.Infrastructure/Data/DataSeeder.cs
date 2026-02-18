@@ -1,59 +1,54 @@
 using GenbaLink.Core.Entities;
 using GenbaLink.Infrastructure.Data;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace GenbaLink.Infrastructure.Data;
 
 public static class DataSeeder
 {
-    public static async Task SeedAsync(GenbaLinkDbContext context)
+    public static async Task SeedAsync(FirestoreRepository repository)
     {
-        if (context.ProductSkus.Any()) return;
+        var existingSkus = await repository.GetAllAsync<ProductSku>("ProductSkus");
+        if (existingSkus.Count > 0) return;
 
-        var skus = new List<ProductSku>();
-        var random = new Random();
-
-        var categories = new[] { "Outerwear", "T-Shirts", "Jeans", "Sweaters", "Accessories" };
-        var colors = new[] { "09 Black", "00 White", "69 Navy", "32 Beige", "15 Red", "57 Olive" };
-        var sizes = new[] { "XS", "S", "M", "L", "XL", "XXL" };
-        var names = new[] 
-        { 
-            "Ultra Light Down Jacket", "AIRism Cotton Oversized T-Shirt", "Selvedge Regular Fit Jeans", 
-            "Souffle Yarn Crew Neck Sweater", "HEATTECH Scarf", "Dry-EX Polo Shirt", "EZY Ankle Pants"
+        var categories = new[] { "Men's Tops", "Women's Tops", "Outerwear", "Bottoms", "Accessories" };
+        var colors = new[] { "White", "Black", "Navy", "Beige", "Olive", "Gray", "Red", "Blue" };
+        var sizes = new[] { "XS", "S", "M", "L", "XL" };
+        
+        var productNames = new Dictionary<string, string[]>
+        {
+            { "Men's Tops", new[] { "AIRism Cotton T-Shirt", "Oxford Shirt", "Dry-EX Polo", "Linen Blend Shirt" } },
+            { "Women's Tops", new[] { "Rayon Blouse", "Supima Cotton Tee", "Sleeveless Top", "Crew Neck Sweater" } },
+            { "Outerwear", new[] { "Ultra Light Down Jacket", "Pocketable Parka", "Blocktech Coat", "Denim Jacket" } },
+            { "Bottoms", new[] { "Stretch Chinos", "Selvedge Jeans", "Smart Ankle Pants", "Cargo Joggers" } },
+            { "Accessories", new[] { "Canvas Tote Bag", "Round Mini Shoulder Bag", "Color Socks", "Leather Belt" } }
         };
 
-        for (int i = 0; i < 1000; i++)
+        var random = new Random(42); // Seeded for consistency
+
+        for (int i = 0; i < 100; i++)
         {
             var category = categories[random.Next(categories.Length)];
-            var name = names[random.Next(names.Length)];
             var color = colors[random.Next(colors.Length)];
             var size = sizes[random.Next(sizes.Length)];
-            
-            // Generate Uniqlo-style 6-digit ID
-            var id = random.Next(100000, 999999).ToString();
+            var possibleNames = productNames[category];
+            var baseName = possibleNames[random.Next(possibleNames.Length)];
 
-            // Ensure uniqueness
-            while (skus.Any(s => s.Id == id))
+            var sku = new ProductSku
             {
-                id = random.Next(100000, 999999).ToString();
-            }
-
-            skus.Add(new ProductSku
-            {
-                Id = id,
-                Name = name,
+                Id = (100000 + i).ToString(),
+                Name = baseName,
                 Category = category,
                 Color = color,
                 Size = size,
-                Price = random.Next(1990, 12990), // Prices in Yen equivalent (sort of)
-                StockLevel = random.Next(5, 100) // Random stock, some will be low
-            });
+                Price = Math.Round(14.90 + (random.NextDouble() * 85), 2),
+                StockLevel = random.Next(0, 150)
+            };
+            
+            await repository.AddAsync("ProductSkus", sku.Id, sku);
         }
-
-        await context.ProductSkus.AddRangeAsync(skus);
-        await context.SaveChangesAsync();
     }
 }
