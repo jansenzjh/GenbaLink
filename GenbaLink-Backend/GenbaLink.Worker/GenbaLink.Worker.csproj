@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-GenbaLink.Worker-b70be622-c22b-42e7-b600-82137234cda3</UserSecretsId>
@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Cloud.PubSub.V1" Version="3.32.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>

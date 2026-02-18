@@ -60,18 +60,29 @@ GenbaLink is composed of two primary services that interact via managed GCP serv
   gcloud auth application-default login
   ```
 
-### Local Setup
-1.  **Clone the repository** and navigate to the backend directory.
-2.  **Configure Project IDs**: Update `appsettings.json` in both `GenbaLink.Api` and `GenbaLink.Worker` with your GCP Project ID.
-3.  **Run the API**:
-    ```bash
-    dotnet run --project GenbaLink.Api/GenbaLink.Api.csproj
-    ```
-    *Note: The API will automatically seed 100 diverse product SKUs into Firestore on first run.*
-4.  **Run the Worker**:
-    ```bash
-    dotnet run --project GenbaLink.Worker/GenbaLink.Worker.csproj
-    ```
+### Local Setup (Docker)
+1. **Configure Project ID**: Ensure your GCP Project ID is available in your environment.
+   ```bash
+   export GCP_PROJECT_ID="your-project-id"
+   ```
+2. **Run with Docker Compose**:
+   ```bash
+   docker-compose up --build
+   ```
+   *This will start both the API (port 8080) and the Worker service.*
+
+### GCP Deployment (Cloud Run)
+A deployment script is provided to automate the setup of Artifact Registry, Pub/Sub, and Cloud Run.
+1. **Ensure gcloud is authenticated**:
+   ```bash
+   gcloud auth login
+   gcloud config set project [YOUR_PROJECT_ID]
+   ```
+2. **Run the deployment script**:
+   ```bash
+   chmod +x deploy_gcp.sh
+   ./deploy_gcp.sh
+   ```
 
 ---
 
