@@ -12,6 +12,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Dashboard", systemImage: "chart.bar.doc.horizontal")
                 }
+            
+            InventoryView()
+                .tabItem {
+                    Label("Inventory", systemImage: "shippingbox")
+                }
         }
     }
 }
