@@ -8,17 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GenbaLink.Infrastructure\GenbaLink.Infrastructure.csproj" />
     <ProjectReference Include="..\GenbaLink.Core\GenbaLink.Core.csproj" />
     <ProjectReference Include="..\GenbaLink.Shared\GenbaLink.Shared.csproj" />
-    <ProjectReference Include="..\GenbaLink.DB\GenbaLink.DB.csproj" />
   </ItemGroup>
 
 </Project>

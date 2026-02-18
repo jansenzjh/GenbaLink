@@ -10,4 +10,8 @@
     <ProjectReference Include="..\GenbaLink.Shared\GenbaLink.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Google.Cloud.Firestore" Version="4.1.0" />
+  </ItemGroup>
+
 </Project>

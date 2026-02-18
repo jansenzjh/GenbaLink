@@ -1,8 +1,7 @@
 using GenbaLink.Core.Interfaces;
 using GenbaLink.Infrastructure.Data;
 using GenbaLink.Infrastructure.Services;
-using Microsoft.EntityFrameworkCore;
-using GenbaLink.DB;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,16 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<GenbaLinkDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+// Firestore and Pub/Sub Repositories
+builder.Services.AddSingleton<FirestoreRepository>();
+builder.Services.AddScoped<IMessageProducerService, PubSubProducerService>();
 
-// Services
+// Domain Services
 builder.Services.AddScoped<IDemandAggregator, DemandAggregator>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
-builder.Services.AddScoped<IKafkaProducerService, KafkaProducerService>();
-builder.Services.AddScoped<SchemaUpgrader>();
 
 var app = builder.Build();
 
@@ -27,11 +23,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-}
-else
-{
-    // For containerized environments like Cloud Run, HTTPS is usually handled by the load balancer.
-    // app.UseHttpsRedirection(); 
 }
 
 app.MapControllers();
@@ -42,19 +33,13 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        // Run database migrations
-        var upgrader = services.GetRequiredService<SchemaUpgrader>();
-        upgrader.Upgrade();
-        
-        var context = services.GetRequiredService<GenbaLinkDbContext>();
-        // EnsureCreated removed in favor of Evolve migrations
-        
-        await DataSeeder.SeedAsync(context);
+        var repository = services.GetRequiredService<FirestoreRepository>();
+        await DataSeeder.SeedAsync(repository);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred seeding the DB.");
+        logger.LogError(ex, "An error occurred seeding Firestore.");
     }
 }
 
