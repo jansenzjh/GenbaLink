@@ -23,10 +23,31 @@ gcloud services enable \
     run.googleapis.com \
     artifactregistry.googleapis.com \
     pubsub.googleapis.com \
-    firestore.googleapis.com \
-    cloudbuild.googleapis.com
+    firestore.googleapis.com
 
-# 2. Create Artifact Registry if it doesn't exist
+# 1a. Grant IAM Permissions to Default Service Account
+echo "Ensuring service account has necessary permissions..."
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+SERVICE_ACCOUNT="$PROJECT_NUMBER-compute@developer.gserviceaccount.com"
+
+echo "Granting Firestore and Pub/Sub roles to $SERVICE_ACCOUNT..."
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$SERVICE_ACCOUNT" \
+    --role="roles/datastore.user" --quiet > /dev/null
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$SERVICE_ACCOUNT" \
+    --role="roles/pubsub.publisher" --quiet > /dev/null
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:$SERVICE_ACCOUNT" \
+    --role="roles/pubsub.subscriber" --quiet > /dev/null
+
+# 2. Configure Docker Authentication (Required for local push)
+echo "Configuring Docker for Artifact Registry..."
+gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+
+# 3. Create Artifact Registry if it doesn't exist
 echo "Setting up Artifact Registry..."
 if ! gcloud artifacts repositories describe $REPOSITORY --location=$REGION > /dev/null 2>&1; then
     gcloud artifacts repositories create $REPOSITORY \
@@ -35,35 +56,28 @@ if ! gcloud artifacts repositories describe $REPOSITORY --location=$REGION > /de
         --description="GenbaLink Docker Repository"
 fi
 
-# 3. Create Pub/Sub Topics and Subscriptions (if they don't exist)
+# 4. Create Pub/Sub Topics and Subscriptions (if they don't exist)
 echo "Setting up Pub/Sub topics and subscriptions..."
 gcloud pubsub topics create inventory-low 2>/dev/null || true
 gcloud pubsub topics create high-demand 2>/dev/null || true
 gcloud pubsub subscriptions create inventory-low-sub --topic=inventory-low 2>/dev/null || true
 gcloud pubsub subscriptions create high-demand-sub --topic=high-demand 2>/dev/null || true
 
-# 4. Build both images using Cloud Build in one go
-echo "Building API and Worker images via Cloud Build..."
+# 5. Build and Push images locally
 API_IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$API_SERVICE_NAME:latest"
 WORKER_IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$WORKER_SERVICE_NAME:latest"
 
-cat > cloudbuild.yaml <<EOF
-steps:
-# Build API
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', '$API_IMAGE', '-f', 'Dockerfile', '.']
-# Build Worker
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', '$WORKER_IMAGE', '-f', 'Dockerfile.worker', '.']
-images:
-- '$API_IMAGE'
-- '$WORKER_IMAGE'
-EOF
+echo "Building API image locally (forcing linux/amd64)..."
+docker build --platform linux/amd64 -t "$API_IMAGE" -f Dockerfile .
+echo "Pushing API image..."
+docker push "$API_IMAGE"
 
-gcloud builds submit --config cloudbuild.yaml .
-rm cloudbuild.yaml
+echo "Building Worker image locally (forcing linux/amd64)..."
+docker build --platform linux/amd64 -t "$WORKER_IMAGE" -f Dockerfile.worker .
+echo "Pushing Worker image..."
+docker push "$WORKER_IMAGE"
 
-# 5. Deploy API to Cloud Run
+# 6. Deploy API to Cloud Run
 echo "Deploying API to Cloud Run..."
 gcloud run deploy $API_SERVICE_NAME \
     --image $API_IMAGE \
@@ -73,7 +87,7 @@ gcloud run deploy $API_SERVICE_NAME \
     --timeout 300 \
     --set-env-vars "Firestore__ProjectId=$PROJECT_ID,PubSub__ProjectId=$PROJECT_ID,PubSub__InventoryTopicId=inventory-low,PubSub__DemandTopicId=high-demand"
 
-# 6. Deploy Worker to Cloud Run
+# 7. Deploy Worker to Cloud Run
 echo "Deploying Worker to Cloud Run..."
 gcloud run deploy $WORKER_SERVICE_NAME \
     --image $WORKER_IMAGE \

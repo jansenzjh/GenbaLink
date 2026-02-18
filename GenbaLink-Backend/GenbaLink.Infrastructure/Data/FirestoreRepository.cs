@@ -12,7 +12,10 @@ public class FirestoreRepository
     public FirestoreRepository(IConfiguration configuration)
     {
         string projectId = configuration["Firestore:ProjectId"] ?? throw new System.ArgumentNullException("Firestore:ProjectId");
-        _db = FirestoreDb.Create(projectId);
+        
+        // Use Builder for better credential discovery in various environments
+        var builder = new FirestoreDbBuilder { ProjectId = projectId };
+        _db = builder.Build();
     }
 
     public CollectionReference GetCollection(string collectionName) => _db.Collection(collectionName);

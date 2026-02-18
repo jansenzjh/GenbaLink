@@ -5,8 +5,9 @@ using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ensure the app binds to all interfaces (required for Cloud Run)
-builder.WebHost.UseUrls("http://0.0.0.0:8080");
+// Cloud Run provides the port via the PORT environment variable
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -22,15 +23,9 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 
 var app = builder.Build();
 
-// Root endpoint for quick verification/health check
+// Simple health check for Cloud Run
 app.MapGet("/", () => "GenbaLink API is operational");
 app.MapGet("/health", () => Results.Ok("Healthy"));
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
 app.MapControllers();
 
@@ -43,24 +38,16 @@ _ = Task.Run(async () =>
         var logger = services.GetRequiredService<ILogger<Program>>();
         try
         {
-            logger.LogInformation("Starting background Firestore seeding...");
+            logger.LogInformation("Background Firestore seeding started...");
             var repository = services.GetRequiredService<FirestoreRepository>();
             await DataSeeder.SeedAsync(repository);
-            logger.LogInformation("Firestore seeding completed successfully.");
+            logger.LogInformation("Background Firestore seeding completed.");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred during non-blocking Firestore seeding.");
+            logger.LogError(ex, "An error occurred during background Firestore seeding.");
         }
     }
 });
 
-try
-{
-    app.Run();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"CRITICAL STARTUP FAILURE: {ex}");
-    throw;
-}
+app.Run();
