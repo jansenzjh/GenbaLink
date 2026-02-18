@@ -1,31 +1,30 @@
 services:
-  app:
+  api:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Server=mariadb;Port=3306;Database=genbalink;Uid=root;Pwd=genba_password;
-    depends_on:
-      mariadb:
-        condition: service_healthy
-
-  mariadb:
-    image: mariadb:10.11
-    environment:
-      - MARIADB_ROOT_PASSWORD=genba_password
-      - MARIADB_DATABASE=genbalink
-    ports:
-      - "3306:3306"
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Firestore__ProjectId=${GCP_PROJECT_ID}
+      - PubSub__ProjectId=${GCP_PROJECT_ID}
+      - PubSub__InventoryTopicId=inventory-low
+      - PubSub__DemandTopicId=high-demand
     volumes:
-      - mariadb_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - ~/.config/gcloud:/root/.config/gcloud:ro
 
-volumes:
-  mariadb_data:
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Firestore__ProjectId=${GCP_PROJECT_ID}
+      - PubSub__ProjectId=${GCP_PROJECT_ID}
+      - PubSub__InventorySubscriptionId=inventory-low-sub
+      - PubSub__DemandSubscriptionId=high-demand-sub
+    depends_on:
+      - api
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud:ro
