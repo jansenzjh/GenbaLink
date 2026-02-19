@@ -1,4 +1,3 @@
-
 import Foundation
 import Speech
 import AVFoundation
@@ -55,6 +54,7 @@ class SpeechRecognizer: ObservableObject {
     
     func stopTranscribing() {
         audioEngine.stop()
+        audioEngine.inputNode.removeTap(onBus: 0)
         recognitionRequest?.endAudio()
         isRecording = false
     }
@@ -99,6 +99,7 @@ class SpeechRecognizer: ObservableObject {
         }
         
         let inputNode = audioEngine.inputNode
+        inputNode.removeTap(onBus: 0) // Defensive: remove existing tap before installing
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, when) in
             self.recognitionRequest?.append(buffer)

@@ -1,6 +1,17 @@
 @GenbaLink.Api_HostAddress = http://localhost:5045
 
-GET {{GenbaLink.Api_HostAddress}}/weatherforecast/
+# Health Check
+GET {{GenbaLink.Api_HostAddress}}/health
 Accept: application/json
 
 ###
+
+# Get Inventory
+GET {{GenbaLink.Api_HostAddress}}/api/inventory
+Accept: application/json
+
+###
+
+# Adjust Stock
+POST {{GenbaLink.Api_HostAddress}}/api/inventory/adjust?skuId=100000&change=-5
+Accept: application/json
