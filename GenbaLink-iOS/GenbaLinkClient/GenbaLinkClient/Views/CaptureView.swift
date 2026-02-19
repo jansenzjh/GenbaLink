@@ -68,8 +68,10 @@ struct CaptureView: View {
                             ProgressView()
                         } else {
                             Text("Analyze with AI")
+                                .frame(maxWidth: .infinity)
                         }
                     }
+                    .buttonStyle(.borderedProminent)
                     .disabled(input.isEmpty || llmService.isLoading || !llmService.modelLoaded)
                 }
                 
@@ -97,10 +99,12 @@ struct CaptureView: View {
                                 .focused($isInputFocused)
                         }
                         
-                        Button("Save Signal") {
-                            saveSignal()
+                        Button(action: saveSignal) {
+                            Text("Save Signal")
+                                .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
+                        .tint(.green)
                     }
                 }
                 
@@ -110,18 +114,20 @@ struct CaptureView: View {
                         .foregroundStyle(.secondary)
                     
                     if !llmService.modelLoaded {
-                        Button("Load Model") {
+                        Button(action: {
                             Task {
                                 await llmService.loadModel()
                             }
+                        }) {
+                            Text("Load Model (Download AI)")
+                                .frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(.bordered)
                     }
                 }
             }
             .navigationTitle("Capture Demand")
-            .onTapGesture {
-                isInputFocused = false
-            }
+            .scrollDismissesKeyboard(.interactively)
             .alert("Signals Saved", isPresented: $showingAlert) {
                 Button("OK", role: .cancel) {
                     resetForm()

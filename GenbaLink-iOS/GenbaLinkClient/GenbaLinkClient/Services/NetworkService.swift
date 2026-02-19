@@ -4,8 +4,14 @@ import Combine
 class NetworkService: ObservableObject {
     static let shared = NetworkService()
     
-    // Using localhost for simulator.
-    private let baseURL = "http://localhost:5045/api"
+    // Configurable baseURL from Info.plist
+    private let baseURL: String = {
+        if let url = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String {
+            return url
+        }
+        // Fallback to local if not found
+        return "https://localhost:5000/api"
+    }()
     
     private let encoder: JSONEncoder = {
         let encoder = JSONEncoder()
