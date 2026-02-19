@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @EnvironmentObject var llmService: LLMService
+    
     var body: some View {
         TabView {
-            CaptureView()
+            CaptureView(llmService: llmService)
                 .tabItem {
                     Label("Capture", systemImage: "pencil.and.scribble")
                 }
