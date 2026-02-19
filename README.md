@@ -1,109 +1,95 @@
 # GenbaLink: "Invisible Demand" Intelligence System
+### Bridging the Gap Between the Retail Floor and Supply Chain Logistics
 
-GenbaLink is a "Genba-First" intelligence platform designed to capture and aggregate unsatisfied customer demand directly from the retail floor. By leveraging on-device LLMs and a high-performance cloud backend, GenbaLink transforms verbalized "invisible demand" into actionable supply chain insights.
+[![Platform: iOS](https://img.shields.io/badge/Platform-iOS%2018%2B-blue.svg?style=flat-square&logo=apple)](https://developer.apple.com/ios/)
+[![Backend: .NET 9](https://img.shields.io/badge/Backend-.NET%209-512bd4.svg?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
+[![Cloud: GCP](https://img.shields.io/badge/Cloud-Google%20Cloud-4285f4.svg?style=flat-square&logo=google-cloud)](https://cloud.google.com/)
+[![AI: MLX Swift](https://img.shields.io/badge/AI-MLX%20Swift-000000.svg?style=flat-square)](https://github.com/ml-explore/mlx-swift)
 
-## System Architecture
+**GenbaLink** is a "Genba-First" (from the Japanese word *Genba*, meaning "the actual place") intelligence platform. It is designed to capture, structure, and aggregate **unsatisfied customer demand** directly from the retail floor, transforming verbalized "invisible demand" into real-time, actionable supply chain insights.
+
+---
+
+## 💎 The Business Value: Capturing Lost Sales
+
+In traditional retail, demand is measured by *what was sold*. But what about **what was asked for but not in stock?** This is "Invisible Demand."
+
+- **Identify Stock Gaps**: Detect real-time demand for out-of-stock items before they impact next week's inventory report.
+- **Zero-Latency Intelligence**: Empower floor staff to capture customer feedback via voice in seconds—no manual forms or data entry.
+- **Privacy-First AI**: All AI processing (Speech-to-Text and Attribute Extraction) happens **on-device**. No customer voices or raw transcripts ever leave the shop floor, ensuring absolute privacy and GDPR/CCPA compliance.
+- **Cost Efficiency**: By running LLMs (`Qwen2.5-3B`) locally on iOS hardware, GenbaLink eliminates expensive per-token cloud AI costs while maintaining high-speed performance.
+
+---
+
+## 📱 Experience the "Genba" Interface
+
+| **Voice Capture & AI Extraction** | **Store Manager Dashboard** | **Real-Time Global Inventory** |
+| :---: | :---: | :---: |
+| ![Capture View](GenbaLink-iOS/screenshots/IMG_8761.PNG) | ![Dashboard View](GenbaLink-iOS/screenshots/IMG_8762.PNG) | ![Inventory View](GenbaLink-iOS/screenshots/IMG_8763.PNG) |
+| *Local AI extracts Category/Color/Size* | *Batch-sync signals to Cloud* | *Monitor & adjust stock levels* |
+
+---
+
+## 🏗 System Architecture
+
+GenbaLink is built on a modern, decoupled architecture designed for global scale and zero-maintenance overhead.
 
 ### End-to-End Data Flow
 
 ```mermaid
 graph TD
     subgraph "Retail Floor (iOS Client)"
-        A[Customer Feedback / Input] --> B[MLX Swift: On-Device AI]
-        B -->|Attribute Extraction| C[SwiftData: Local Storage]
-        C -->|Batch Sync| D[REST API Client]
+        A[Customer Feedback / Input] --> B[Apple Speech: Local STT]
+        B -->|Raw Text| C[MLX Swift: On-Device AI]
+        C -->|Attribute Extraction| D[SwiftData: Local Buffer]
+        D -->|Batch Sync| E[REST API Client]
     end
 
     subgraph "Cloud Infrastructure (GCP)"
-        D -->|POST /api/demand/batch| E[GenbaLink API]
-        E -->|Persist| F[(Google Firestore)]
-        E -->|Notify| G[GCP Pub/Sub]
+        E -->|POST /api/demand/batch| F[GenbaLink API]
+        F -->|Persist| G[(Google Firestore)]
+        F -->|Notify| H[GCP Pub/Sub]
         
-        G -->|Consume| H[GenbaLink Worker]
-        H -->|Alert| I[Warehouse & Supply Chain Systems]
+        H -->|Event Trigger| I[GenbaLink Worker]
+        I -->|Automated Alert| J[Warehouse & Logistics Systems]
     end
 ```
 
-### Backend Clean Architecture
+### Technical Innovation Highlights
 
-The backend is built following Clean Architecture principles to ensure maintainability and testability:
-
-```mermaid
-graph LR
-    subgraph "Clean Architecture"
-        API[API Layer: REST Controllers] --> Core[Core Layer: Business Logic & Interfaces]
-        Infra[Infrastructure Layer: GCP Services] --> Core
-        API --> Infra
-    end
-    Infra --> DB[(Firestore)]
-    Infra --> PS[GCP Pub/Sub]
-```
+- **Edge AI (MLX Swift)**: Utilizes Apple Silicon's Neural Engine to run `Qwen2.5-3B-Instruct` locally. This allows for intelligent SKU extraction even in stores with spotty Wi-Fi.
+- **Event-Driven Backend (.NET 9)**: A high-performance ASP.NET Core API coupled with a decoupled Worker service.
+- **Serverless Scaling**: Leveraging **Google Cloud Run**, **Firestore**, and **Pub/Sub** for a system that scales to thousands of stores with zero server management.
 
 ---
 
-## Key Features
+## 🛠 Tech Stack
 
-- **Genba-First AI**: Utilizes **MLX Swift** to run `Qwen2.5-3B-Instruct` locally on iOS devices. This allows for real-time, offline-capable extraction of product attributes (Category, Color, Size) from raw customer requests.
-- **Offline-First Persistence**: Captured signals are buffered in **SwiftData** and synced in batches to minimize network overhead and ensure reliability in environments with spotty connectivity.
-- **High-Performance Aggregation**: A .NET 9 API aggregates signals in **Google Firestore**, detecting high-demand patterns across different stores.
-- **Event-Driven Intelligence**: Significant demand shifts or low-stock scenarios trigger **GCP Pub/Sub** events, which are processed by a dedicated worker for automated warehouse alerts.
-
----
-
-## Tech Stack
-
-### Frontend (iOS)
-- **UI Framework**: SwiftUI
-- **AI Engine**: MLX Swift (Local LLM Execution)
-- **Local Database**: SwiftData
-- **Network**: URLSession with Batch Processing
-
-### Backend (.NET 9)
-- **Framework**: ASP.NET Core Web API
-- **Primary Database**: Google Cloud Firestore (NoSQL)
-- **Messaging**: Google Cloud Pub/Sub
-- **Worker**: .NET 9 Hosted Services
-- **Deployment**: Dockerized, optimized for Google Cloud Run
+| **Component** | **Technologies** |
+| :--- | :--- |
+| **Frontend (iOS)** | SwiftUI, SwiftData, MLX Swift, Apple Speech Framework |
+| **API Layer** | .NET 9 (C#), ASP.NET Core, Clean Architecture |
+| **Database** | Google Cloud Firestore (NoSQL) |
+| **Messaging** | Google Cloud Pub/Sub |
+| **Worker Service** | .NET 9 Hosted Services |
+| **DevOps** | Docker, Google Cloud Run, GitHub Actions |
 
 ---
 
-## Getting Started
+## 📂 Project Structure
 
-### Prerequisites
-- **iOS**: Xcode 16+, iOS 18+ (for SwiftData & MLX Swift)
-- **Backend**: .NET 9 SDK, Docker (optional)
-- **Cloud**: A GCP Project with Firestore and Pub/Sub enabled.
-
-### 1. Backend Setup
-Configure your GCP Project ID in `GenbaLink-Backend/GenbaLink.Api/appsettings.json`.
-
-```bash
-cd GenbaLink-Backend/GenbaLink.Api
-dotnet run
-```
-The API will start at `http://localhost:8080` (or the port defined in your environment).
-
-### 2. iOS App Setup
-1. Open `GenbaLink-iOS/GenbaLinkClient/GenbaLinkClient.xcodeproj` in Xcode.
-2. The project uses **MLX Swift**. Ensure the package is resolved.
-3. Update the `API_BASE_URL` in `Info.plist` or `NetworkService.swift` to point to your local or deployed backend.
-4. Run on a physical device for the best MLX performance (Requires Apple Silicon).
-
-### 3. Running the Worker
-```bash
-cd GenbaLink-Backend/GenbaLink.Worker
-dotnet run
-```
+- **`GenbaLink-iOS/`**: The SwiftUI mobile application.
+- **`GenbaLink-Backend/GenbaLink.Api/`**: RESTful entry point for demand aggregation and inventory management.
+- **`GenbaLink-Backend/GenbaLink.Worker/`**: Background service for real-time event processing and fulfillment alerts.
+- **`GenbaLink-Backend/GenbaLink.Core/`**: Domain logic and interface definitions (Clean Architecture).
+- **`GenbaLink-Backend/GenbaLink.Infrastructure/`**: Implementation of GCP service integrations.
 
 ---
 
-## API Overview
+## 🚀 Getting Started
 
-- `GET /api/inventory`: Retrieve current stock levels.
-- `POST /api/inventory/adjust`: Manually adjust stock (triggers low-stock alerts).
-- `POST /api/demand/batch`: Sync a batch of demand signals from the retail floor.
+Detailed setup instructions for each component can be found in their respective directories:
 
----
+- [**Backend Setup Guide**](GenbaLink-Backend/README_backend.md): Configure GCP and run the .NET services.
+- [**iOS Client Guide**](GenbaLink-iOS/README_client.md): Build the app and deploy the local LLM.
 
-## License
-[MIT License](LICENSE)
